@@ -1,25 +1,56 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
+import Header from "./components/Header";
+import Info from "./components/Info";
+import QuemSomos from "./components/QuemSomos";
+import Solucoes from "./components/Solucoes";
+import Sistemas from "./components/Sistemas";
+import Suporte from "./components/Suporte";
+import Consultoria from "./components/Consultoria";
+import Atuacao from "./components/Atuacao";
+import Footer from "./components/Footer";
+import Blog from "./components/Blog";
+import Admin from "./components/Admin";
+import "./index.css"; // Certifique-se de que o Tailwind CSS está configurado corretamente
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <ConditionalHeader />{" "}
+        {/* Adicione um padding-top para evitar sobreposição do conteúdo */}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <Info />
+                <QuemSomos />
+                <Solucoes />
+                <Sistemas />
+                <Suporte />
+                <Consultoria />
+                <Atuacao />
+                <Footer />
+              </>
+            }
+          />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/admin" element={<Admin />} />
+        </Routes>
+      </div>
+    </Router>
   );
+}
+
+function ConditionalHeader() {
+  const location = useLocation();
+  return location.pathname !== "/admin" ? <Header /> : null;
 }
 
 export default App;
