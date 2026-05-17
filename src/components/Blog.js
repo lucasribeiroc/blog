@@ -108,13 +108,11 @@ const Blog = () => {
                   >
                     <div className="absolute top-0 bottom-0 left-0 right-0 bg-gradient-to-b from-transparent to-black opacity-50 rounded-lg"></div>
                     <div className="absolute top-0 left-0 right-0 flex items-center justify-between mx-5 mt-3">
-                      <a
-                        rel="noopener noreferrer"
-                        href="#"
-                        className="px-3 py-2 text-xs font-semibold tracking-wider uppercase text-white bg-violet-600 rounded max-w-[50%]" // Diminuir a largura do quadrado
+                      <span
+                        className="px-3 py-2 text-xs font-semibold tracking-wider uppercase text-white bg-violet-600 rounded max-w-[50%]"
                       >
                         {post.title}
-                      </a>
+                      </span>
                       <div className="flex flex-col justify-start text-center text-white">
                         <span
                           className="text-3xl font-semibold leading-none tracking-wide"
