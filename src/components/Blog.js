@@ -65,7 +65,7 @@ const Blog = () => {
         {/* Adicionar background color e desfocar quando o modal estiver aberto */}
         <div className="max-w-screen-xl p-5 mx-auto bg-[#8DD926] dark:text-gray-800">
           <h1 className="text-4xl font-bold text-center mb-8 mt-20">
-            BLOG PDVSEVEN
+            BLOG ZOLV
           </h1>
           {loading ? (
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-4 sm:grid-cols-2">
@@ -153,7 +153,7 @@ const Blog = () => {
                         className="text-sm text-white mt-2"
                         style={{ textShadow: "1px 1px 2px black" }} // Adicionar contorno preto
                       >
-                        Postado por PDVSeven
+                        Postado por Zolv
                       </p>
                     </div>
                   </div>
@@ -227,7 +227,7 @@ const Blog = () => {
                   </FacebookShareButton>
                   <EmailShareButton
                     url={`http://localhost:3000/posts/${selectedPost._id}`}
-                    subject="Confira este post no Blog da PDVSeven"
+                    subject="Confira este post no Blog Zolv"
                     className="mr-4"
                   >
                     <EmailIcon size={32} round />
@@ -252,7 +252,7 @@ const Blog = () => {
               style={{ backgroundColor: "#0F172A" }} // Azul mais escuro
             >
               <p className="text-white text-sm">
-                Postado por PDVSeven em{" "}
+                Postado por Zolv em{" "}
                 {new Date(selectedPost.createdAt).toLocaleDateString("pt-BR")}{" "}
                 às{" "}
                 {new Date(selectedPost.createdAt).toLocaleTimeString("pt-BR", {
