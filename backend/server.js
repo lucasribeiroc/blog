@@ -11,6 +11,7 @@ const app = express();
 
 // Middleware para analisar o corpo das requisições
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Middleware CORS
 app.use(

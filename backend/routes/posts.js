@@ -52,4 +52,44 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Rota para atualizar um post
+router.put("/:id", protect, upload.single("image"), async (req, res) => {
+  const { title, content } = req.body;
+  const image = req.file;
+
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: "Post não encontrado" });
+    }
+
+    post.title = title || post.title;
+    post.content = content || post.content;
+
+    if (image) {
+      post.imageUrl = `data:${image.mimetype};base64,${image.buffer.toString("base64")}`;
+    }
+
+    await post.save();
+    res.json(post);
+  } catch (error) {
+    res.status(500).json({ message: "Erro atualizando post", error });
+  }
+});
+
+// Rota para excluir um post
+router.delete("/:id", protect, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: "Post não encontrado" });
+    }
+
+    await post.deleteOne();
+    res.json({ message: "Post excluído com sucesso" });
+  } catch (error) {
+    res.status(500).json({ message: "Erro excluindo post", error });
+  }
+});
+
 module.exports = router;

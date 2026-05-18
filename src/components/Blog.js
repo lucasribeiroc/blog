@@ -18,6 +18,16 @@ const Blog = () => {
   const [currentPage, setCurrentPage] = useState(1); // Estado para controlar a página atual
   const postsPerPage = 8; // Número de posts por página
 
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  };
+
+  const getExcerpt = (html, maxLength = 100) => {
+    const text = stripHtml(html);
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -143,9 +153,7 @@ const Blog = () => {
                         className="font-medium text-md text-white"
                         style={{ textShadow: "1px 1px 2px black" }} // Adicionar contorno preto
                       >
-                        {post.content.length > 80
-                          ? `${post.content.substring(0, 80)}...`
-                          : post.content}
+                        {getExcerpt(post.content, 100)}
                       </p>
                       <p
                         className="text-sm text-white mt-2"
@@ -240,10 +248,10 @@ const Blog = () => {
                   </WhatsappShareButton>
                 </div>
               </div>
-              <pre className="text-left text-lg font-poppins whitespace-pre-wrap">
-                {selectedPost.content}
-              </pre>{" "}
-              {/* Usar <pre> para preservar formatação */}
+              <div
+                className="text-left text-lg font-poppins"
+                dangerouslySetInnerHTML={{ __html: selectedPost.content }}
+              />
             </div>
             <div
               className="flex justify-between items-center p-4 border-t"
