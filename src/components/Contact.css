@@ -1,0 +1,195 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
+/* ============================= */
+/* CONTACT BASE */
+/* ============================= */
+
+.contact {
+  width: 100%;
+  background: #00d488;
+  padding: 72px 0;
+  font-family: "Poppins", sans-serif;
+}
+
+.contact-container,
+.contact-form,
+.contact-form input,
+.contact-form button,
+.contact-modal,
+.contact-modal p,
+.contact-modal button {
+  font-family: "Poppins", sans-serif;
+}
+
+.contact-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  text-align: center;
+}
+
+/* ============================= */
+/* TÍTULOS */
+/* ============================= */
+
+.contact-container h2 {
+  font-size: 34px;
+  font-weight: 600;
+  color: #1e2738;
+  margin-bottom: 8px;
+}
+
+.contact-container p {
+  font-size: 16px;
+  color: #1e2738;
+  margin-bottom: 40px;
+}
+
+/* ============================= */
+/* FORMULÁRIO */
+/* ============================= */
+
+.contact-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* INPUTS */
+.contact-form input {
+  height: 52px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-family: "Poppins", sans-serif;
+  color: #1e2738;
+  outline: none;
+}
+
+/* BOTÃO */
+.contact-form button {
+  grid-column: span 2;
+  margin-top: 20px;
+
+  height: 56px;
+  background: #12295F;
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.contact-form button:hover {
+  background: #1f243a;
+}
+
+/* ============================= */
+/* TABLET */
+/* ============================= */
+
+@media (max-width: 1024px) {
+  .contact-container h2 {
+    font-size: 30px;
+  }
+}
+
+/* ============================= */
+/* MOBILE */
+/* ============================= */
+
+@media (max-width: 768px) {
+  .contact {
+    padding: 56px 0;
+  }
+
+  .contact-container {
+    padding: 0 24px;
+  }
+
+  .contact-container h2 {
+    font-size: 26px;
+  }
+
+  .contact-container p {
+    font-size: 15px;
+    margin-bottom: 32px;
+  }
+
+  .contact-form {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-form button {
+    grid-column: span 1;
+    width: 100%;
+  }
+}
+
+/* ============================= */
+/* MOBILE PEQUENO */
+/* ============================= */
+
+@media (max-width: 480px) {
+  .contact-container h2 {
+    font-size: 22px;
+  }
+
+  .contact-form input {
+    height: 48px;
+    font-size: 14px;
+  }
+
+  .contact-form button {
+    height: 52px;
+    font-size: 13px;
+  }
+}
+
+.contact-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.contact-modal {
+  background: #ffffff;
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  max-width: 90%;
+  width: 360px;
+}
+
+.contact-modal p {
+  margin: 0 0 24px;
+  font-size: 18px;
+  color: #12295f;
+  font-weight: 600;
+}
+
+.contact-modal button {
+  min-width: 120px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 999px;
+  background: #12295f;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.contact-modal button:hover {
+  background: #1f243a;
+}

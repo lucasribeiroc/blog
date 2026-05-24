@@ -12,6 +12,12 @@ const postSchema = new mongoose.Schema({
   imageUrl: {
     type: String,
   },
+  tags: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tag",
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
