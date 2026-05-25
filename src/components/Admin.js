@@ -146,7 +146,7 @@ const Admin = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get(`${apiBase}/api/posts`);
+      const response = await axios.get(`${apiBase}/api/posts?t=${Date.now()}`);
       setPosts(response.data || []);
     } catch (error) {
       console.error("Erro carregando posts:", error.response || error.message);
@@ -154,7 +154,7 @@ const Admin = () => {
   };
 
   const fetchTags = async () => {
-    const url = `${apiBase}/api/tags`;
+    const url = `${apiBase}/api/tags?t=${Date.now()}`;
     try {
       const res = await axios.get(url);
       setTagsList(res.data || []);
@@ -355,7 +355,8 @@ const Admin = () => {
       try {
         localStorage.setItem("post_deleted", postId);
       } catch (e) { /* ignore */ }
-      // do not re-fetch here to avoid reintroducing stale data and avoid affecting session
+      // refresh local state from server to guarantee deletion is reflected
+      await fetchPosts();
     } catch (error) {
       console.error("Erro excluindo post:", error.response || error.message);
       alert("Erro excluindo post");
@@ -393,6 +394,9 @@ const Admin = () => {
       try {
         localStorage.setItem("tag_deleted", tagId);
       } catch (e) { /* ignore */ }
+      // refresh local state from server to guarantee deletion is reflected
+      await fetchTags();
+      await fetchPosts();
     } catch (error) {
       console.error("Erro excluindo tag:", error.response || error.message);
       alert("Erro excluindo tag");
