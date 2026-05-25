@@ -105,9 +105,37 @@ const Admin = () => {
     }
   }, [isAuthenticated]);
 
-  // load token from localStorage on mount
+  // load token from sessionStorage on mount
+  useEffect(() => {
+    const storedToken = sessionStorage.getItem("admin_token");
+    if (storedToken) {
+      setToken(storedToken);
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  // clear token when leaving the admin page (component unmount)
+  useEffect(() => {
+    const cleanup = () => {
+      try {
+        sessionStorage.removeItem("admin_token");
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    // remove token if the page is unloaded (tab closed or refreshed)
+    window.addEventListener("beforeunload", cleanup);
+
+    return () => {
+      cleanup();
+      window.removeEventListener("beforeunload", cleanup);
+    };
+  }, []);
+
   useEffect(() => {
     if (!isAuthenticated) return;
+    fetchPosts();
     fetchTags();
   }, [isAuthenticated]);
 
@@ -150,10 +178,12 @@ const Admin = () => {
         }
       );
       setToken(response.data.token);
+      localStorage.setItem("admin_token", response.data.token);
       setIsAuthenticated(true);
       navigate("/admin"); // Redirecionar para a página de administração
     } catch (error) {
-      alert("Invalid username or password");
+      console.error("Login error:", error?.response?.status, error?.response?.data || error?.message);
+      alert(error?.response?.data?.message || "Invalid username or password");
     }
   };
 
@@ -305,6 +335,7 @@ const Admin = () => {
         },
       });
       alert("Post excluído com sucesso");
+      // remove post from local state immediately so UI updates without reload
       setPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
       if (postId === selectedPostId) {
         setSelectedPostId("");
@@ -312,7 +343,19 @@ const Admin = () => {
         setEditContent("");
         setEditImage(null);
       }
-      fetchPosts();
+      // signal other tabs/pages to refresh their posts lists
+      try {
+        localStorage.setItem("posts_updated", String(Date.now()));
+      } catch (e) { /* ignore */ }
+      try {
+        // also dispatch an event in the same window so SPA routes update immediately
+        window.dispatchEvent(new Event("posts_updated"));
+      } catch (e) { /* ignore */ }
+      // signal the deleted post ID to other tabs so they can remove it locally
+      try {
+        localStorage.setItem("post_deleted", postId);
+      } catch (e) { /* ignore */ }
+      // do not re-fetch here to avoid reintroducing stale data and avoid affecting session
     } catch (error) {
       console.error("Erro excluindo post:", error.response || error.message);
       alert("Erro excluindo post");
@@ -331,8 +374,25 @@ const Admin = () => {
         },
       });
       alert("Tag excluída com sucesso");
-      fetchTags();
-      fetchPosts();
+      // update local state immediately so the tag disappears from the UI
+      setTagsList((prev) => prev.filter((t) => t._id !== tagId));
+      // also remove tag references from local posts state so delete view updates
+      setPosts((prevPosts) => prevPosts.map((p) => ({
+        ...p,
+        tags: (p.tags || []).filter((tg) => tg._id !== tagId),
+      })));
+      // signal other tabs/pages to refresh their posts/tags lists
+      try {
+        localStorage.setItem("posts_updated", String(Date.now()));
+      } catch (e) { /* ignore */ }
+      try {
+        // also dispatch an event in the same window so SPA routes update immediately
+        window.dispatchEvent(new Event("posts_updated"));
+      } catch (e) { /* ignore */ }
+      // signal the deleted tag ID to other tabs so they can remove it locally
+      try {
+        localStorage.setItem("tag_deleted", tagId);
+      } catch (e) { /* ignore */ }
     } catch (error) {
       console.error("Erro excluindo tag:", error.response || error.message);
       alert("Erro excluindo tag");

@@ -17,6 +17,7 @@ Module._initPaths();
 const postRoutes = require("./routes/posts");
 const authRoutes = require("./routes/auth");
 const tagRoutes = require("./routes/tags");
+const User = require("./models/User");
 
 const envPath = path.join(__dirname, ".env");
 dotenv.config({ path: envPath });
@@ -72,11 +73,36 @@ mongoose.connect(dbURI, {
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
-db.once("open", () => {
+db.once("open", async () => {
   console.log("Connected to MongoDB Atlas");
+
+  const adminUsername = process.env.USER_USERNAME;
+  const adminPassword = process.env.USER_PASSWORD;
+
+  if (adminUsername && adminPassword) {
+    try {
+      const existingAdmin = await User.findOne({ username: adminUsername });
+      if (!existingAdmin) {
+        const adminUser = new User({ username: adminUsername, password: adminPassword });
+        await adminUser.save();
+        console.log(`Admin user created: ${adminUsername}`);
+      } else {
+        const passwordMatches = await existingAdmin.matchPassword(adminPassword);
+        if (!passwordMatches) {
+          existingAdmin.password = adminPassword;
+          await existingAdmin.save();
+          console.log(`Admin password updated for user: ${adminUsername}`);
+        }
+      }
+    } catch (createError) {
+      console.error("Error creating/updating admin user:", createError);
+    }
+  } else {
+    console.warn("USER_USERNAME or USER_PASSWORD is not set in env. Admin user will not be auto-created.");
+  }
 });
 
-// Uso das rotas
+// Uso das rotas - DEVE VIR PRIMEIRO
 const apiPrefix = "/blog";
 app.use("/api/posts", postRoutes);
 app.use("/api/auth", authRoutes);
@@ -89,10 +115,10 @@ app.use(`${apiPrefix}/api/tags`, tagRoutes);
 const PORT = process.env.PORT_SERVER || process.env.PORT || 5000;
 const buildCandidates = [
   process.env.BUILD_PATH && path.resolve(process.env.BUILD_PATH),
-  path.join(__dirname, "build"),
-  path.join(__dirname, "..", "build"),
   path.join(__dirname, "..", "www", "blog"),
   path.join(__dirname, "..", "..", "www", "blog"),
+  path.join(__dirname, "build"),
+  path.join(__dirname, "..", "build"),
 ].filter(Boolean);
 
 const finalBuildPath = buildCandidates.find((candidate) => fs.existsSync(candidate));
@@ -105,12 +131,17 @@ if (!finalBuildPath) {
 
 if (finalBuildPath) {
   app.use(apiPrefix, express.static(finalBuildPath));
+  app.use(express.static(finalBuildPath));
 
   app.get(apiPrefix, (req, res) => {
     res.sendFile(path.join(finalBuildPath, "index.html"));
   });
 
   app.get(`${apiPrefix}/*`, (req, res) => {
+    res.sendFile(path.join(finalBuildPath, "index.html"));
+  });
+
+  app.get("/*", (req, res) => {
     res.sendFile(path.join(finalBuildPath, "index.html"));
   });
 }

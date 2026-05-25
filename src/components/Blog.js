@@ -30,7 +30,8 @@ const Blog = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get(`${apiBase}/api/posts`);
+        // add timestamp to URL to force fresh request and avoid browser caching
+        const response = await axios.get(`${apiBase}/api/posts?t=${Date.now()}`);
         setPosts(response.data);
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -41,15 +42,60 @@ const Blog = () => {
 
     const fetchTags = async () => {
       try {
-        const response = await axios.get(`${apiBase}/api/tags`);
+        // add timestamp to URL to force fresh request and avoid browser caching
+        const response = await axios.get(`${apiBase}/api/tags?t=${Date.now()}`);
         setTagsList(response.data || []);
       } catch (error) {
         console.error("Error fetching tags:", error);
       }
     };
 
+    // initial load
     fetchPosts();
     fetchTags();
+
+    // poll for updates every 5 seconds so deletions from other tabs are reflected immediately
+    const pollInterval = setInterval(() => {
+      fetchPosts();
+      fetchTags();
+    }, 5000);
+
+    // also listen for storage events as a faster alternative
+    const onStorage = (e) => {
+      if (!e) return;
+      if (e.key === "post_deleted" && e.newValue) {
+        // remove the deleted post locally without full refetch
+        const deletedPostId = e.newValue;
+        setPosts((prev) => prev.filter((post) => post._id !== deletedPostId));
+      } else if (e.key === "tag_deleted" && e.newValue) {
+        // remove tag from all posts and remove from tag list
+        const deletedTagId = e.newValue;
+        setTagsList((prev) => prev.filter((t) => t._id !== deletedTagId));
+        setPosts((prev) =>
+          prev.map((p) => ({
+            ...p,
+            tags: (p.tags || []).filter((tg) => tg._id !== deletedTagId),
+          }))
+        );
+      } else if (e.key === "posts_updated") {
+        // fallback: re-fetch if needed
+        fetchPosts();
+        fetchTags();
+      }
+    };
+
+    const onCustom = () => {
+      fetchPosts();
+      fetchTags();
+    };
+
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("posts_updated", onCustom);
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("posts_updated", onCustom);
+    };
   }, []);
 
   // derive list of tags from backend and fallback to tags in posts
