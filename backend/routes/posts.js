@@ -11,7 +11,7 @@ const { getUniqueRandomColor } = require("../utils/tagColor");
 
 // Rota protegida para adicionar posts
 router.post("/", protect, async (req, res) => {
-  const { title, content, metaTitle, metaDescription, slug } = req.body;
+  const { title, content, metaTitle, metaDescription, slug, imageAlt } = req.body;
   // tags can be passed as JSON string or array of names
   let tagsInput = [];
   try {
@@ -61,6 +61,7 @@ router.post("/", protect, async (req, res) => {
       title,
       content,
       imageUrl,
+      imageAlt: imageAlt || "",
       slug,
       metaTitle: metaTitle || title.substring(0, 60),
       metaDescription: metaDescription || content.replace(/<[^>]*>/g, '').substring(0, 155),
@@ -114,7 +115,7 @@ router.get("/:id", async (req, res) => {
 
 // Rota para atualizar um post
 router.put("/:id", protect, async (req, res) => {
-  const { title, content, metaTitle, metaDescription, slug } = req.body;
+  const { title, content, metaTitle, metaDescription, slug, imageAlt } = req.body;
   // handle tags similar to post
   let tagsInput = [];
   try {
@@ -150,6 +151,7 @@ router.put("/:id", protect, async (req, res) => {
 
     post.title = title || post.title;
     post.content = content || post.content;
+    if (imageAlt !== undefined) post.imageAlt = imageAlt;
     post.metaTitle = metaTitle || post.metaTitle || post.title.substring(0, 60);
     post.metaDescription = metaDescription || post.metaDescription || content.replace(/<[^>]*>/g, '').substring(0, 155);
     if (slug) post.slug = slug;

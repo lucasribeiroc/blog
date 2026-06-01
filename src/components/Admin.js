@@ -58,9 +58,15 @@ const Admin = () => {
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [slug, setSlug] = useState("");
+  const [imageAlt, setImageAlt] = useState("");
+  const [contentImageAlt, setContentImageAlt] = useState("");
+  const [showContentImageDialog, setShowContentImageDialog] = useState(false);
   const [editMetaTitle, setEditMetaTitle] = useState("");
   const [editMetaDescription, setEditMetaDescription] = useState("");
   const [editSlug, setEditSlug] = useState("");
+  const [editImageAlt, setEditImageAlt] = useState("");
+  const [editContentImageAlt, setEditContentImageAlt] = useState("");
+  const [showEditContentImageDialog, setShowEditContentImageDialog] = useState(false);
   
   const navigate = useNavigate(); // Hook para navegação
 
@@ -234,6 +240,7 @@ const Admin = () => {
     formData.append("metaTitle", metaTitle);
     formData.append("metaDescription", metaDescription);
     formData.append("slug", slug);
+    formData.append("imageAlt", imageAlt);
     // include tags as array of names
     if (selectedTags && selectedTags.length > 0) {
       const names = selectedTags.map((t) => t.name || String(t));
@@ -253,6 +260,8 @@ const Admin = () => {
       setTitle("");
       setContent("");
       setImage(null);
+      setImageAlt("");
+      setContentImageAlt("");
       setSelectedTags([]);
       setTagInput("");
       setShowTagSuggestions(false);
@@ -277,6 +286,8 @@ const Admin = () => {
     setTitle("");
     setContent("");
     setImage(null);
+    setImageAlt("");
+    setContentImageAlt("");
     setSelectedTags([]);
     setTagInput("");
     setShowTagSuggestions(false);
@@ -297,6 +308,8 @@ const Admin = () => {
       setEditTitle(post.title);
       setEditContent(post.content);
       setEditImage(null);
+      setEditImageAlt(post.imageAlt || "");
+      setEditContentImageAlt("");
       setEditSelectedTags(post.tags || []);
       setEditMetaTitle(post.metaTitle || "");
       setEditMetaDescription(post.metaDescription || "");
@@ -341,6 +354,7 @@ const Admin = () => {
     formData.append("metaTitle", editMetaTitle);
     formData.append("metaDescription", editMetaDescription);
     formData.append("slug", editSlug);
+    formData.append("imageAlt", editImageAlt);
     if (editSelectedTags && editSelectedTags.length > 0) {
       const names = editSelectedTags.map((t) => t.name || String(t));
       formData.append("tags", JSON.stringify(names));
@@ -508,11 +522,34 @@ const Admin = () => {
   };
 
   const handleInsertImage = () => {
-    contentImageInputRef.current?.click();
+    setShowContentImageDialog(true);
   };
 
   const handleInsertImageEdit = () => {
-    editContentImageInputRef.current?.click();
+    setShowEditContentImageDialog(true);
+  };
+
+  const closeContentImageDialog = () => {
+    setShowContentImageDialog(false);
+    setContentImageAlt("");
+    if (contentImageInputRef.current) contentImageInputRef.current.value = null;
+  };
+
+  const closeEditContentImageDialog = () => {
+    setShowEditContentImageDialog(false);
+    setEditContentImageAlt("");
+    if (editContentImageInputRef.current) editContentImageInputRef.current.value = null;
+  };
+
+  const setAltOnLastImage = (editor, altText) => {
+    if (!editor) return;
+    const images = editor.root.querySelectorAll("img");
+    if (!images.length) return;
+    const img = images[images.length - 1];
+    if (img) {
+      img.setAttribute("alt", altText || "");
+      img.setAttribute("title", altText || "");
+    }
   };
 
   const handleContentImageChange = async (e) => {
@@ -530,6 +567,13 @@ const Admin = () => {
       return;
     }
 
+    const altText = contentImageAlt.trim();
+    if (!altText) {
+      alert("Informe o texto alternativo da imagem antes de inserir.");
+      e.target.value = null;
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result;
@@ -538,7 +582,9 @@ const Admin = () => {
         const range = ed.getSelection(true) || { index: ed.getLength(), length: 0 };
         ed.insertEmbed(range.index, "image", dataUrl);
         ed.setSelection(range.index + 1);
+        setAltOnLastImage(ed, altText);
         setContent(ed.root.innerHTML);
+        closeContentImageDialog();
       }
       e.target.value = null;
     };
@@ -616,6 +662,13 @@ const Admin = () => {
       return;
     }
 
+    const altText = editContentImageAlt.trim();
+    if (!altText) {
+      alert("Informe o texto alternativo da imagem antes de inserir.");
+      e.target.value = null;
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result;
@@ -624,7 +677,9 @@ const Admin = () => {
         const range = ed.getSelection(true) || { index: ed.getLength(), length: 0 };
         ed.insertEmbed(range.index, "image", dataUrl);
         ed.setSelection(range.index + 1);
+        setAltOnLastImage(ed, altText);
         setEditContent(ed.root.innerHTML);
+        closeEditContentImageDialog();
       }
       e.target.value = null;
     };
@@ -985,6 +1040,38 @@ const Admin = () => {
                       className="hidden"
                       onChange={handleContentImageChange}
                     />
+                    {showContentImageDialog && (
+                      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+                        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                          <h2 className="mb-4 text-lg font-semibold">Inserir imagem de conteúdo</h2>
+                          <label className="mb-2 block text-sm font-medium text-slate-700">Texto alternativo</label>
+                          <input
+                            type="text"
+                            value={contentImageAlt}
+                            onChange={(e) => setContentImageAlt(e.target.value)}
+                            className="mb-4 w-full rounded border border-gray-300 px-3 py-2 text-sm text-slate-900"
+                            placeholder="Descrição da imagem"
+                          />
+                          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                            <button
+                              type="button"
+                              onClick={() => contentImageInputRef.current?.click()}
+                              className="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+                            >
+                              Escolher imagem
+                            </button>
+                            <button
+                              type="button"
+                              onClick={closeContentImageDialog}
+                              className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-gray-100"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                          <p className="mt-3 text-sm text-slate-500">Escolha JPEG ou PNG até 500KB.</p>
+                        </div>
+                      </div>
+                    )}
                       <div className="relative">
                         {!content && !editorFocused && (
                           <div className="pointer-events-none absolute inset-0 flex items-start p-4 text-gray-400">
@@ -1016,6 +1103,17 @@ const Admin = () => {
                     onChange={(e) => setImage(e.target.files[0])}
                     className="p-2 border border-gray-300 rounded w-full"
                   />
+                </div>
+                <div className="mb-4 flex flex-col items-start w-full max-w-2xl">
+                  <label className="mb-1">Alt text da imagem de capa:</label>
+                  <input
+                    type="text"
+                    placeholder="Texto alternativo descritivo"
+                    value={imageAlt}
+                    onChange={(e) => setImageAlt(e.target.value)}
+                    className="p-2 border border-gray-300 rounded w-full"
+                  />
+                  <small className="text-gray-500 mt-1">Importante para acessibilidade e SEO.</small>
                 </div>
                 <div className="flex w-full max-w-2xl justify-between mb-8">
                   <button
@@ -1265,6 +1363,38 @@ const Admin = () => {
                           className="hidden"
                           onChange={handleEditContentImageChange}
                         />
+                        {showEditContentImageDialog && (
+                          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+                            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                              <h2 className="mb-4 text-lg font-semibold">Inserir imagem de conteúdo</h2>
+                              <label className="mb-2 block text-sm font-medium text-slate-700">Texto alternativo</label>
+                              <input
+                                type="text"
+                                value={editContentImageAlt}
+                                onChange={(e) => setEditContentImageAlt(e.target.value)}
+                                className="mb-4 w-full rounded border border-gray-300 px-3 py-2 text-sm text-slate-900"
+                                placeholder="Descrição da imagem"
+                              />
+                              <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => editContentImageInputRef.current?.click()}
+                                  className="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+                                >
+                                  Escolher imagem
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={closeEditContentImageDialog}
+                                  className="rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-gray-100"
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                              <p className="mt-3 text-sm text-slate-500">Escolha JPEG ou PNG até 500KB.</p>
+                            </div>
+                          </div>
+                        )}
                         <div className="relative">
                           {!editContent && !editEditorFocused && (
                             <div className="pointer-events-none absolute inset-0 flex items-start p-4 text-gray-400">
@@ -1296,6 +1426,17 @@ const Admin = () => {
                         onChange={(e) => setEditImage(e.target.files[0])}
                         className="p-2 border border-gray-300 rounded w-full"
                       />
+                    </div>
+                    <div className="mb-4 flex flex-col items-start w-full max-w-2xl">
+                      <label className="mb-1">Alt text da imagem de capa:</label>
+                      <input
+                        type="text"
+                        placeholder="Texto alternativo descritivo"
+                        value={editImageAlt}
+                        onChange={(e) => setEditImageAlt(e.target.value)}
+                        className="p-2 border border-gray-300 rounded w-full"
+                      />
+                      <small className="text-gray-500 mt-1">Importante para acessibilidade e SEO.</small>
                     </div>
                     <div className="flex w-full max-w-2xl justify-between mb-8">
                       <button

@@ -116,7 +116,8 @@ export default function PostPage() {
                 <div className="overflow-hidden rounded-[32px] bg-slate-900">
                   <img
                     src={post.imageUrl}
-                    alt={post.title}
+                    alt={post.imageAlt || post.title}
+                    title={post.imageAlt || post.title}
                     className="w-full object-cover"
                     style={{ maxHeight: 580 }}
                   />

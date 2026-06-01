@@ -12,6 +12,9 @@ const postSchema = new mongoose.Schema({
   imageUrl: {
     type: String,
   },
+  imageAlt: {
+    type: String,
+  },
   slug: {
     type: String,
     unique: true,
