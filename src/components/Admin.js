@@ -2,6 +2,10 @@ import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
+  FaAlignCenter,
+  FaAlignJustify,
+  FaAlignLeft,
+  FaAlignRight,
   FaBold,
   FaEye,
   FaEyeSlash,
@@ -403,17 +407,19 @@ const Admin = () => {
     }
   };
 
-  const applyFormat = (command, value = null, targetQuillRef = quillRef, setter = setContent) => {
+  const applyFormat = (command, value = null, targetQuillRef = quillRef, setter = setContent, toggle = true) => {
     if (!targetQuillRef?.current) return;
     const editor = targetQuillRef.current.getEditor();
     if (!editor) return;
 
-    const range = editor.getSelection(true);
+    editor.focus();
+    const selection = editor.getSelection(true);
+    const range = selection || { index: 0, length: 0 };
+    const current = editor.getFormat(range) || editor.getFormat();
 
     // Inline formats (toggle)
     if (command === "bold" || command === "italic" || command === "underline") {
       const fmt = command;
-      const current = editor.getFormat(range) || {};
       editor.format(fmt, !current[fmt]);
       setter(editor.root.innerHTML);
       return;
@@ -421,7 +427,6 @@ const Admin = () => {
 
     // Block quote toggle
     if (command === "formatBlock" && value === "blockquote") {
-      const current = editor.getFormat(range) || {};
       const active = !!current.blockquote;
       editor.format("blockquote", !active);
       setter(editor.root.innerHTML);
@@ -430,9 +435,28 @@ const Admin = () => {
 
     // Unordered list toggle
     if (command === "insertUnorderedList") {
-      const current = editor.getFormat(range) || {};
       const isList = current.list === "bullet";
       editor.format("list", isList ? false : "bullet");
+      setter(editor.root.innerHTML);
+      return;
+    }
+
+    // Header toggle for H1 / H2 / H3
+    if (command === "header") {
+      if (toggle) {
+        const isActiveHeader = current.header === value;
+        editor.format("header", isActiveHeader ? false : value);
+      } else {
+        editor.format("header", value);
+      }
+      setter(editor.root.innerHTML);
+      return;
+    }
+
+    // Align toggle
+    if (command === "align") {
+      const isActiveAlign = current.align === value;
+      editor.format("align", isActiveAlign ? false : value);
       setter(editor.root.innerHTML);
       return;
     }
@@ -783,6 +807,77 @@ const Admin = () => {
                       <button
                         type="button"
                         onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => applyFormat("align", "left", quillRef, setContent)}
+                        className={`flex items-center justify-center w-10 h-10 rounded-xl border transition ${(editorFormats.align === 'left' || !editorFormats.align) ? 'border-green-600 bg-green-600 text-white' : 'border-gray-200 bg-white text-slate-600'} hover:border-green-400 hover:text-green-600`}
+                        title="Alinhar à esquerda"
+                      >
+                        <FaAlignLeft />
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => applyFormat("align", "center", quillRef, setContent)}
+                        className={`flex items-center justify-center w-10 h-10 rounded-xl border transition ${editorFormats.align === 'center' ? 'border-green-600 bg-green-600 text-white' : 'border-gray-200 bg-white text-slate-600'} hover:border-green-400 hover:text-green-600`}
+                        title="Centralizar"
+                      >
+                        <FaAlignCenter />
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => applyFormat("align", "right", quillRef, setContent)}
+                        className={`flex items-center justify-center w-10 h-10 rounded-xl border transition ${editorFormats.align === 'right' ? 'border-green-600 bg-green-600 text-white' : 'border-gray-200 bg-white text-slate-600'} hover:border-green-400 hover:text-green-600`}
+                        title="Alinhar à direita"
+                      >
+                        <FaAlignRight />
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => applyFormat("align", "justify", quillRef, setContent)}
+                        className={`flex items-center justify-center w-10 h-10 rounded-xl border transition ${editorFormats.align === 'justify' ? 'border-green-600 bg-green-600 text-white' : 'border-gray-200 bg-white text-slate-600'} hover:border-green-400 hover:text-green-600`}
+                        title="Justificar"
+                      >
+                        <FaAlignJustify />
+                      </button>
+                      <select
+                        value={editorFormats.header || ""}
+                        onChange={(e) => applyFormat("header", e.target.value ? parseInt(e.target.value, 10) : false, quillRef, setContent, false)}
+                        className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-slate-600"
+                        title="Título"
+                      >
+                        <option value="">Normal</option>
+                        <option value="1">H1</option>
+                        <option value="2">H2</option>
+                        <option value="3">H3</option>
+                        <option value="4">H4</option>
+                        <option value="5">H5</option>
+                        <option value="6">H6</option>
+                      </select>
+                      <select
+                        value={editorFormats.font || ""}
+                        onChange={(e) => applyFormat("font", e.target.value || false, quillRef, setContent)}
+                        className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-slate-600"
+                        title="Fonte"
+                      >
+                        <option value="">Padrão</option>
+                        <option value="serif">Serif</option>
+                        <option value="monospace">Monospace</option>
+                      </select>
+                      <select
+                        value={editorFormats.size || ""}
+                        onChange={(e) => applyFormat("size", e.target.value || false, quillRef, setContent)}
+                        className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-slate-600"
+                        title="Tamanho"
+                      >
+                        <option value="">Normal</option>
+                        <option value="small">Pequena</option>
+                        <option value="large">Grande</option>
+                        <option value="huge">Maior</option>
+                      </select>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={() => applyFormat("formatBlock", "blockquote", quillRef, setContent)}
                         className={`flex items-center justify-center w-10 h-10 rounded-xl border transition ${editorFormats.blockquote ? 'border-green-600 bg-green-600 text-white' : 'border-gray-200 bg-white text-slate-600'} hover:border-green-400 hover:text-green-600`}
                         title="Citação"
@@ -828,7 +923,7 @@ const Admin = () => {
                           onFocus={() => setEditorFocused(true)}
                           onBlur={() => setEditorFocused(false)}
                           modules={{ toolbar: false }}
-                          formats={["bold", "italic", "underline", "blockquote", "list", "image"]}
+                          formats={["bold", "italic", "underline", "blockquote", "list", "image", "header", "font", "size", "align", "align"]}
                           theme="snow"
                           className="custom-quill min-h-[360px] w-full rounded-b-3xl bg-white p-4 text-left text-slate-800"
                           style={{ height: '360px' }}
@@ -975,6 +1070,56 @@ const Admin = () => {
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => applyFormat("align", "left", editQuillRef, setEditContent)}
+                            className={`flex items-center justify-center w-10 h-10 rounded-xl border transition ${(editEditorFormats.align === 'left' || !editEditorFormats.align) ? 'border-green-600 bg-green-600 text-white' : 'border-gray-200 bg-white text-slate-600'} hover:border-green-400 hover:text-green-600`}
+                            title="Alinhar à esquerda"
+                          >
+                            <FaAlignLeft />
+                          </button>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => applyFormat("align", "center", editQuillRef, setEditContent)}
+                            className={`flex items-center justify-center w-10 h-10 rounded-xl border transition ${editEditorFormats.align === 'center' ? 'border-green-600 bg-green-600 text-white' : 'border-gray-200 bg-white text-slate-600'} hover:border-green-400 hover:text-green-600`}
+                            title="Centralizar"
+                          >
+                            <FaAlignCenter />
+                          </button>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => applyFormat("align", "right", editQuillRef, setEditContent)}
+                            className={`flex items-center justify-center w-10 h-10 rounded-xl border transition ${editEditorFormats.align === 'right' ? 'border-green-600 bg-green-600 text-white' : 'border-gray-200 bg-white text-slate-600'} hover:border-green-400 hover:text-green-600`}
+                            title="Alinhar à direita"
+                          >
+                            <FaAlignRight />
+                          </button>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => applyFormat("align", "justify", editQuillRef, setEditContent)}
+                            className={`flex items-center justify-center w-10 h-10 rounded-xl border transition ${editEditorFormats.align === 'justify' ? 'border-green-600 bg-green-600 text-white' : 'border-gray-200 bg-white text-slate-600'} hover:border-green-400 hover:text-green-600`}
+                            title="Justificar"
+                          >
+                            <FaAlignJustify />
+                          </button>
+                          <select
+                            value={editEditorFormats.header || ""}
+                            onChange={(e) => applyFormat("header", e.target.value ? parseInt(e.target.value, 10) : false, editQuillRef, setEditContent, false)}
+                            className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-slate-600"
+                            title="Título"
+                          >
+                            <option value="">Normal</option>
+                            <option value="1">H1</option>
+                            <option value="2">H2</option>
+                            <option value="3">H3</option>
+                            <option value="4">H4</option>
+                            <option value="5">H5</option>
+                            <option value="6">H6</option>
+                          </select>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => applyFormat("formatBlock", "blockquote", editQuillRef, setEditContent)}
                             className={`flex items-center justify-center w-10 h-10 rounded-xl border transition ${editEditorFormats.blockquote ? 'border-green-600 bg-green-600 text-white' : 'border-gray-200 bg-white text-slate-600'} hover:border-green-400 hover:text-green-600`}
                             title="Citação"
@@ -1020,7 +1165,7 @@ const Admin = () => {
                             onFocus={() => setEditEditorFocused(true)}
                             onBlur={() => setEditEditorFocused(false)}
                             modules={{ toolbar: false }}
-                            formats={["bold", "italic", "underline", "blockquote", "list", "image"]}
+                            formats={["bold", "italic", "underline", "blockquote", "list", "image", "header", "font", "size", "align"]}
                             theme="snow"
                             className="custom-quill min-h-[360px] w-full rounded-b-3xl bg-white p-4 text-left text-slate-800"
                             style={{ height: '360px' }}

@@ -20,3 +20,94 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.blog-post-content h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 2rem 0 1rem;
+}
+.blog-post-content h2 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 1.75rem 0 0.95rem;
+}
+.blog-post-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.6rem 0 0.9rem;
+}
+.blog-post-content h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.5rem 0 0.85rem;
+}
+.blog-post-content h5 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 1.4rem 0 0.8rem;
+}
+.blog-post-content h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 1.3rem 0 0.75rem;
+}
+.blog-post-content p {
+  line-height: 1.8;
+  margin: 1rem 0;
+}
+.blog-post-content blockquote {
+  border-left: 0.25rem solid #cbd5e1;
+  padding-left: 1rem;
+  color: #475569;
+  font-style: italic;
+  margin: 1.5rem 0;
+}
+.blog-post-content ul,
+.blog-post-content ol {
+  padding-left: 1.25rem;
+  margin: 1.5rem 0;
+}
+.blog-post-content li {
+  line-height: 1.8;
+  margin: 0.4rem 0;
+}
+.blog-post-content img {
+  display: block;
+  max-width: 100%;
+  margin: 1.5rem auto;
+  border-radius: 0.75rem;
+}
+.blog-post-content figure {
+  margin: 1.5rem 0;
+}
+.blog-post-content figcaption {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+.blog-post-content pre,
+.blog-post-content code {
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+}
+.blog-post-content a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+.blog-post-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+.blog-post-content th,
+.blog-post-content td {
+  border: 1px solid #cbd5e1;
+  padding: 0.75rem;
+}

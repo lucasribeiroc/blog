@@ -92,7 +92,7 @@ export default function PostPage() {
                 </div>
               ) : null}
 
-              <div className="prose prose-slate max-w-none text-slate-700 space-y-6">
+              <div className="blog-post-content max-w-none text-slate-700 space-y-6">
                 <div dangerouslySetInnerHTML={{ __html: post.content }} />
               </div>
               <div className="mt-8 flex justify-start">
