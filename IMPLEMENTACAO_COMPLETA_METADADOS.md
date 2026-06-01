@@ -14,10 +14,11 @@
 4. [Como usar no Admin](#como-usar-no-admin)
 5. [Arquivos modificados](#arquivos-modificados)
 6. [Funcionamento técnico](#funcionamento-técnico)
-7. [Exemplos práticos](#exemplos-práticos)
-8. [Dicas de SEO](#dicas-de-seo)
-9. [Troubleshooting](#troubleshooting)
-10. [Próximos passos](#próximos-passos)
+7. [Acessibilidade de imagens](#acessibilidade-de-imagens)
+8. [Exemplos práticos](#exemplos-práticos)
+9. [Dicas de SEO](#dicas-de-seo)
+10. [Troubleshooting](#troubleshooting)
+11. [Próximos passos](#proximos-passos)
 
 ---
 
@@ -30,6 +31,8 @@ Implementamos um **sistema completo de metadados por post** que torna seu blog o
 1. **Meta Title** - Título que aparece no Google
 2. **Meta Description** - Descrição resumida que aparece no Google
 3. **Slug** - URL amigável em vez de IDs criptografados
+
+Além disso, o editor agora exige texto alternativo (`alt`) ao inserir cada imagem de conteúdo, e a imagem de capa do post também passou a receber `title` para exibir tooltip ao passar o mouse.
 
 ### **Exemplo Visual:**
 
@@ -330,6 +333,25 @@ const [editMetaDescription, setEditMetaDescription] = useState("");
 const [editSlug, setEditSlug] = useState("");
 ```
 
+**Novo fluxo de acessibilidade de imagem:**
+- Removido o campo fixo de `Alt text para imagens inseridas no conteúdo` do formulário principal.
+- Agora, ao inserir cada imagem de conteúdo, abre um **diálogo modal** que pede o texto alternativo (`alt`) antes do upload.
+- O modal garante que cada imagem de conteúdo tenha `alt` e `title` definidos no editor, tornando a imagem mais acessível e legível para leitores de tela.
+
+**Função relevante:**
+```javascript
+const setAltOnLastImage = (editor, altText) => {
+  if (!editor) return;
+  const images = editor.root.querySelectorAll("img");
+  if (!images.length) return;
+  const img = images[images.length - 1];
+  if (img) {
+    img.setAttribute("alt", altText || "");
+    img.setAttribute("title", altText || "");
+  }
+};
+```
+
 **Função para gerar slug:**
 ```javascript
 const generateSlug = (text) => {
@@ -428,6 +450,21 @@ document.title = response.data.metaTitle || response.data.title;
 metaDesc.content = response.data.metaDescription || response.data.title;
 ```
 
+**Correção de tooltip para imagem de capa:**
+- Foi adicionado o atributo `title` à imagem de capa do post.
+- O `alt` permanece presente para acessibilidade, mas o `title` garante que o texto também apareça ao passar o mouse.
+
+**Renderização do HTML da imagem:**
+```jsx
+<img
+  src={post.imageUrl}
+  alt={post.imageAlt || post.title}
+  title={post.imageAlt || post.title}
+  className="w-full object-cover"
+  style={{ maxHeight: 580 }}
+/>
+```
+
 ---
 
 ### **6. Frontend: `src/App.js`**
@@ -444,6 +481,8 @@ metaDesc.content = response.data.metaDescription || response.data.title;
 ---
 
 ## 🔬 Funcionamento técnico
+
+---
 
 ### **Fluxo de Criação de Post**
 
@@ -516,7 +555,28 @@ Metadados injetados no <head>
   tags: [ObjectId("..."), ObjectId("...")],
   createdAt: ISODate("2026-06-01T10:30:00Z")
 }
-```
+
+---
+
+## 🧭 Acessibilidade de imagens
+
+### O que foi adicionado
+- O editor agora exige que cada imagem de conteúdo receba texto alternativo (`alt`) no momento da inserção.
+- O campo fixo de `Alt text` foi removido do formulário principal porque ele não era uma captura por imagem.
+- A imagem de capa também passou a receber `title`, para mostrar o texto em hover.
+
+### Por que isso importa
+- `alt` é essencial para leitores de tela e SEO de imagens.
+- `title` é importante para exibir tooltip ao passar o mouse em navegadores.
+- Isso garante que a imagem esteja descrita corretamente no HTML renderizado.
+
+### Onde foi alterado
+- `src/components/Admin.js`
+  - adicionou diálogo de alt específico para cada imagem de conteúdo
+  - removeu o campo fixo de alt no editor
+  - mapeou o último `img` inserido e adicionou `alt` + `title`
+- `src/components/PostPage.js`
+  - adicionou `title={post.imageAlt || post.title}` na imagem de capa
 
 ---
 
