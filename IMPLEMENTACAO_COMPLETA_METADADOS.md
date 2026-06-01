@@ -31,6 +31,7 @@ Implementamos um **sistema completo de metadados por post** que torna seu blog o
 1. **Meta Title** - Título que aparece no Google
 2. **Meta Description** - Descrição resumida que aparece no Google
 3. **Slug** - URL amigável em vez de IDs criptografados
+4. **Tag canonical** - URL oficial gerada automaticamente no `<head>` de cada post, usando o slug.
 
 Além disso, o editor agora exige texto alternativo (`alt`) ao inserir cada imagem de conteúdo, e a imagem de capa do post também passou a receber `title` para exibir tooltip ao passar o mouse.
 
@@ -448,11 +449,25 @@ if (slug && slug.match(/^[a-z0-9-]+$/)) {
 // Injetar metadados na página
 document.title = response.data.metaTitle || response.data.title;
 metaDesc.content = response.data.metaDescription || response.data.title;
+
+// Gerar canonical automático
+const canonicalSlug = response.data.slug || createSlugFromText(response.data.title || '');
+const publicUrl = process.env.PUBLIC_URL || '';
+let canonicalLink = document.querySelector('link[rel="canonical"]');
+if (!canonicalLink) {
+  canonicalLink = document.createElement('link');
+  canonicalLink.rel = 'canonical';
+  document.head.appendChild(canonicalLink);
+}
+canonicalLink.href = canonicalSlug
+  ? `${window.location.origin}${publicUrl}/#/posts/${canonicalSlug}`
+  : window.location.href;
 ```
 
 **Correção de tooltip para imagem de capa:**
 - Foi adicionado o atributo `title` à imagem de capa do post.
 - O `alt` permanece presente para acessibilidade, mas o `title` garante que o texto também apareça ao passar o mouse.
+- A URL canônica agora também usa o slug para apontar a versão oficial do post.
 
 **Renderização do HTML da imagem:**
 ```jsx

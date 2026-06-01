@@ -14,6 +14,15 @@ export default function PostPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const createSlugFromText = (text) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -49,6 +58,19 @@ export default function PostPage() {
           document.head.appendChild(metaDesc);
         }
         metaDesc.content = response.data.metaDescription || response.data.title || '';
+
+        // Atualizar tag canonical no <head>
+        let canonicalLink = document.querySelector('link[rel="canonical"]');
+        if (!canonicalLink) {
+          canonicalLink = document.createElement('link');
+          canonicalLink.rel = 'canonical';
+          document.head.appendChild(canonicalLink);
+        }
+        const canonicalSlug = response.data.slug || createSlugFromText(response.data.title || '');
+        const publicUrl = process.env.PUBLIC_URL || '';
+        canonicalLink.href = canonicalSlug
+          ? `${window.location.origin}${publicUrl}/#/posts/${canonicalSlug}`
+          : window.location.href;
         
       } catch (err) {
         console.error("Error fetching post:", err);
