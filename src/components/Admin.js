@@ -53,6 +53,15 @@ const Admin = () => {
   const editContentImageInputRef = useRef(null);
   const imageUploadRef = useRef(null);
   const editImageUploadRef = useRef(null);
+  
+  // Novos estados para metadados
+  const [metaTitle, setMetaTitle] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
+  const [slug, setSlug] = useState("");
+  const [editMetaTitle, setEditMetaTitle] = useState("");
+  const [editMetaDescription, setEditMetaDescription] = useState("");
+  const [editSlug, setEditSlug] = useState("");
+  
   const navigate = useNavigate(); // Hook para navegação
 
   // Inject small CSS to ensure Quill editor fills the container
@@ -148,6 +157,16 @@ const Admin = () => {
     fetchTags();
   }, []);
 
+  // Função para gerar slug a partir do título
+  const generateSlug = (text) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
   const fetchPosts = async () => {
     try {
       const response = await axios.get(`${apiBase}/api/posts?t=${Date.now()}`);
@@ -212,6 +231,9 @@ const Admin = () => {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("content", content);
+    formData.append("metaTitle", metaTitle);
+    formData.append("metaDescription", metaDescription);
+    formData.append("slug", slug);
     // include tags as array of names
     if (selectedTags && selectedTags.length > 0) {
       const names = selectedTags.map((t) => t.name || String(t));
@@ -234,6 +256,9 @@ const Admin = () => {
       setSelectedTags([]);
       setTagInput("");
       setShowTagSuggestions(false);
+      setMetaTitle("");
+      setMetaDescription("");
+      setSlug("");
       if (quillRef.current) {
         const ed = quillRef.current.getEditor();
         ed.setContents([]);
@@ -255,6 +280,9 @@ const Admin = () => {
     setSelectedTags([]);
     setTagInput("");
     setShowTagSuggestions(false);
+    setMetaTitle("");
+    setMetaDescription("");
+    setSlug("");
     if (quillRef.current) {
       const ed = quillRef.current.getEditor();
       ed.setContents([]);
@@ -270,6 +298,9 @@ const Admin = () => {
       setEditContent(post.content);
       setEditImage(null);
       setEditSelectedTags(post.tags || []);
+      setEditMetaTitle(post.metaTitle || "");
+      setEditMetaDescription(post.metaDescription || "");
+      setEditSlug(post.slug || "");
       if (editQuillRef.current) {
         const ed = editQuillRef.current.getEditor();
         ed.clipboard.dangerouslyPasteHTML(post.content || "");
@@ -279,6 +310,9 @@ const Admin = () => {
       setEditContent("");
       setEditImage(null);
       setEditSelectedTags([]);
+      setEditMetaTitle("");
+      setEditMetaDescription("");
+      setEditSlug("");
       if (editQuillRef.current) {
         const ed = editQuillRef.current.getEditor();
         ed.setContents([]);
@@ -304,6 +338,9 @@ const Admin = () => {
     const formData = new FormData();
     formData.append("title", editTitle);
     formData.append("content", editContent);
+    formData.append("metaTitle", editMetaTitle);
+    formData.append("metaDescription", editMetaDescription);
+    formData.append("slug", editSlug);
     if (editSelectedTags && editSelectedTags.length > 0) {
       const names = editSelectedTags.map((t) => t.name || String(t));
       formData.append("tags", JSON.stringify(names));
@@ -723,9 +760,47 @@ const Admin = () => {
                     type="text"
                     placeholder="Título"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      setSlug(generateSlug(e.target.value));
+                    }}
                     className="p-2 border border-gray-300 rounded w-full"
                   />
+                </div>
+                <div className="mb-4 flex flex-col items-start w-full max-w-2xl">
+                  <label className="mb-1">Meta Title (SEO - max 60 caracteres):</label>
+                  <input
+                    type="text"
+                    placeholder="Título que aparece no Google"
+                    value={metaTitle}
+                    onChange={(e) => setMetaTitle(e.target.value.substring(0, 60))}
+                    className="p-2 border border-gray-300 rounded w-full"
+                    maxLength="60"
+                  />
+                  <small className="text-gray-500 mt-1">{metaTitle.length}/60</small>
+                </div>
+                <div className="mb-4 flex flex-col items-start w-full max-w-2xl">
+                  <label className="mb-1">Meta Description (SEO - max 155 caracteres):</label>
+                  <textarea
+                    placeholder="Descrição que aparece no Google"
+                    value={metaDescription}
+                    onChange={(e) => setMetaDescription(e.target.value.substring(0, 155))}
+                    className="p-2 border border-gray-300 rounded w-full"
+                    rows="3"
+                    maxLength="155"
+                  />
+                  <small className="text-gray-500 mt-1">{metaDescription.length}/155</small>
+                </div>
+                <div className="mb-4 flex flex-col items-start w-full max-w-2xl">
+                  <label className="mb-1">Slug (URL amigável):</label>
+                  <input
+                    type="text"
+                    placeholder="slug-amigavel-do-post"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    className="p-2 border border-gray-300 rounded w-full"
+                  />
+                  <small className="text-gray-500 mt-1">URL: /blog/post/{slug || 'seu-slug'}</small>
                 </div>
                 <div className="mb-4 flex flex-col items-start w-full max-w-2xl">
                   <label className="mb-1 font-semibold text-left w-full">Tags (opcional):</label>
@@ -988,9 +1063,47 @@ const Admin = () => {
                         type="text"
                         placeholder="Título"
                         value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
+                        onChange={(e) => {
+                          setEditTitle(e.target.value);
+                          setEditSlug(generateSlug(e.target.value));
+                        }}
                         className="p-2 border border-gray-300 rounded w-full"
                       />
+                    </div>
+                    <div className="mb-4 flex flex-col items-start w-full max-w-2xl">
+                      <label className="mb-1">Meta Title (SEO - max 60 caracteres):</label>
+                      <input
+                        type="text"
+                        placeholder="Título que aparece no Google"
+                        value={editMetaTitle}
+                        onChange={(e) => setEditMetaTitle(e.target.value.substring(0, 60))}
+                        className="p-2 border border-gray-300 rounded w-full"
+                        maxLength="60"
+                      />
+                      <small className="text-gray-500 mt-1">{editMetaTitle.length}/60</small>
+                    </div>
+                    <div className="mb-4 flex flex-col items-start w-full max-w-2xl">
+                      <label className="mb-1">Meta Description (SEO - max 155 caracteres):</label>
+                      <textarea
+                        placeholder="Descrição que aparece no Google"
+                        value={editMetaDescription}
+                        onChange={(e) => setEditMetaDescription(e.target.value.substring(0, 155))}
+                        className="p-2 border border-gray-300 rounded w-full"
+                        rows="3"
+                        maxLength="155"
+                      />
+                      <small className="text-gray-500 mt-1">{editMetaDescription.length}/155</small>
+                    </div>
+                    <div className="mb-4 flex flex-col items-start w-full max-w-2xl">
+                      <label className="mb-1">Slug (URL amigável):</label>
+                      <input
+                        type="text"
+                        placeholder="slug-amigavel-do-post"
+                        value={editSlug}
+                        onChange={(e) => setEditSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        className="p-2 border border-gray-300 rounded w-full"
+                      />
+                      <small className="text-gray-500 mt-1">URL: /blog/post/{editSlug || 'seu-slug'}</small>
                     </div>
                     <div className="mb-2 w-full max-w-2xl">
                       <label className="mb-1 block text-sm font-medium text-slate-700">Tags (opcional):</label>

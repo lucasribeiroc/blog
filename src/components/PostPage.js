@@ -9,7 +9,7 @@ const apiBase = process.env.REACT_APP_API_URL || "/blog";
 
 export default function PostPage() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { slug } = useParams();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,8 +17,39 @@ export default function PostPage() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`${apiBase}/api/posts/${id}`);
+        // Tenta buscar por slug primeiro
+        let response;
+        if (slug && slug.match(/^[a-z0-9-]+$/)) {
+          // É um slug válido
+          try {
+            response = await axios.get(`${apiBase}/api/posts/slug/${slug}`);
+          } catch (err) {
+            // Se slug não funcionar, tenta como ID (compatibilidade com posts antigos)
+            if (err.response?.status === 404) {
+              response = await axios.get(`${apiBase}/api/posts/${slug}`);
+            } else {
+              throw err;
+            }
+          }
+        } else {
+          // Trata como ID direto
+          response = await axios.get(`${apiBase}/api/posts/${slug}`);
+        }
+        
         setPost(response.data);
+        
+        // Atualizar metadados da página
+        document.title = response.data.metaTitle || response.data.title || 'Blog';
+        
+        // Remover meta description anterior se existir
+        let metaDesc = document.querySelector('meta[name="description"]');
+        if (!metaDesc) {
+          metaDesc = document.createElement('meta');
+          metaDesc.name = 'description';
+          document.head.appendChild(metaDesc);
+        }
+        metaDesc.content = response.data.metaDescription || response.data.title || '';
+        
       } catch (err) {
         console.error("Error fetching post:", err);
         setError("Erro ao carregar o post.");
@@ -27,12 +58,12 @@ export default function PostPage() {
       }
     };
 
-    if (id) {
+    if (slug) {
       fetchPost();
       // Scroll to top when post is loaded
       window.scrollTo(0, 0);
     }
-  }, [id]);
+  }, [slug]);
 
   const formatDate = (dateValue) => {
     if (!dateValue) return "";

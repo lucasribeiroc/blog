@@ -17,6 +17,16 @@ const Blog = () => {
   const [currentPage, setCurrentPage] = useState(1); // Estado para controlar a página atual
   const postsPerPage = 8; // Número de posts por página
 
+  // Função para gerar slug a partir do título
+  const generateSlug = (text) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
   const stripHtml = (html) => {
     if (!html) return "";
     return html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
@@ -106,8 +116,16 @@ const Blog = () => {
   const latestPost = posts && posts.length > 0 ? posts[0] : null;
 
   const handleOpenPost = (post) => {
-    if (post && post._id) {
-      navigate(`/posts/${post._id}`);
+    if (post) {
+      // Se tem slug, usa slug
+      // Se não tem slug, gera a partir do título
+      const slug = post.slug || generateSlug(post.title || "");
+      if (slug) {
+        navigate(`/posts/${slug}`);
+      } else if (post._id) {
+        // fallback final para ID
+        navigate(`/posts/${post._id}`);
+      }
     }
   };
 
